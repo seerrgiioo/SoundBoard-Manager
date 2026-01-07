@@ -32,11 +32,14 @@ package-lock.json
 src/dist/
 src/node_modules/
 out/
+win-unpacked/
 *.exe
+*-Setup.exe
 *.dmg
 *.AppImage
 *.deb
 *.rpm
+*.nupkg
 
 # ===========================
 # IDE & Editors
