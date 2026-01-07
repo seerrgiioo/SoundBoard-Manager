@@ -96,7 +96,3 @@ localpycs/
 builder-debug.yml
 builder-effective-config.yaml
 *.blockmap
-installer.nsi
-demo_positions.py
-build.py
-BUILD.md

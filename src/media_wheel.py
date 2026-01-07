@@ -5,19 +5,10 @@ Intercepción de teclas multimedia (rueda del teclado) para tomar control total.
 - Pulsar (mute): clic corto alterna modo volumen/selección; mantener 2s silencia la sesión actual (o master).
 - Se suprime el manejo nativo del sistema (no cambia el volumen maestro por defecto).
 """
-import sys
 import keyboard
 import threading
 import time
-
-# Imports compatibles con PyInstaller
-if getattr(sys, 'frozen', False):
-    import backend
-else:
-    try:
-        from . import backend
-    except ImportError:
-        import backend
+from . import backend
 
 
 class MediaWheelController:

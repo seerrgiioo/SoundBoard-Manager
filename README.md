@@ -23,8 +23,7 @@
 
 ## 📸 Screenshots
 
-(/src/assets/example.png)
-
+![Preview Banner](./src/assets/banner.png)
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -36,8 +35,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/seerrgiioo/SoundBoard-Manager.git
-   cd SoundBoard-Manager
+   git clone https://github.com/tu-usuario/SoundManager.git
+   cd SoundManager
    ```
 
 2. **Create virtual environment (recommended)**
@@ -51,7 +50,11 @@
    pip install -r requirements.txt
    ```
 
-4. **Run the application**
+4. **Configure language files** (optional)
+   
+   See [CONFIGURACION_I18N.md](CONFIGURACION_I18N.md) for details on setting up the GitHub repository for language files.
+
+5. **Run the application**
    ```bash
    python -m src
    ```
@@ -61,7 +64,7 @@
 ### Project Structure
 
 ```
-SoundBoard-Manager/
+SoundManager/
 ├── src/
 │   ├── __main__.py         # Application entry point
 │   ├── backend.py          # Audio session management (pycaw)
@@ -145,6 +148,8 @@ The application uses a smart i18n system:
 3. **Offline mode**: Uses cached files when internet is unavailable
 4. **Fallback**: Built-in Spanish and English translations
 
+See [CONFIGURACION_I18N.md](CONFIGURACION_I18N.md) for setup instructions.
+
 ## 🛠️ Technologies
 
 ### Core
@@ -210,7 +215,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📧 Support
 
 For questions, issues, or feature requests:
-- Open an issue on [GitHub Issues](https://github.com/seerrgiioo/SoundBoard-Manager/issues)
+- Open an issue on [GitHub Issues](https://github.com/tu-usuario/SoundManager/issues)
 - Check existing issues before creating new ones
 
 ## 🙏 Acknowledgments
@@ -222,6 +227,7 @@ For questions, issues, or feature requests:
 
 ---
 
-**Made by seerrgiioo with ❤️ and Python** 
+**Made with ❤️ and Python**
 
+*Replacing 200MB Electron apps, one mixer at a time* 🎵
 
