@@ -10,7 +10,7 @@ from typing import Dict, Optional
 
 # Directorio de cache para idiomas
 CACHE_DIR = Path.home() / 'AppData' / 'Local' / 'SoundBoard Manager' / 'i18n'
-GITHUB_REPO = "https://raw.githubusercontent.com/tu-usuario/SoundManager/main/i18n"
+GITHUB_REPO = "https://raw.githubusercontent.com/seerrgiioo/SoundBoard-Manager/refs/heads/main/i18n"
 
 # Traducciones por defecto (español) si no se puede descargar
 DEFAULT_TRANSLATIONS = {
