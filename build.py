@@ -200,10 +200,8 @@ Section "install"
     WriteRegDWORD HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${APPNAME}" "NoRepair" 1
     WriteRegDWORD HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${APPNAME}" "EstimatedSize" ${INSTALLSIZE}
     
-    ; Preguntar si iniciar con Windows
-    MessageBox MB_YESNO "¿Desea que ${APPNAME} se inicie automáticamente con Windows?" IDNO skipAutostart
-        WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Run" "${APPNAME}" "$INSTDIR\\SoundBoardManager.exe"
-    skipAutostart:
+    ; Iniciar con Windows (HKCU Run)
+    WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Run" "${APPNAME}" "$INSTDIR\\SoundBoardManager.exe"
     
     ; Crear desinstalador
     WriteUninstaller "$INSTDIR\\uninstall.exe"
@@ -231,12 +229,61 @@ SectionEnd
         with open(nsis_script, 'w', encoding='utf-8') as f:
             f.write(script_content)
         print(f"✓ Script NSIS creado: {nsis_script}")
-        print("\nPara crear el instalador, ejecuta:")
-        print(f"  makensis {nsis_script}")
-        print("\nO instala NSIS desde: https://nsis.sourceforge.io/Download")
+        print("  (Se compilará automáticamente en el siguiente paso si NSIS está instalado)")
         return True
     except Exception as e:
         print(f"✗ Error creando script NSIS: {e}")
+        return False
+
+def build_nsis_installer():
+    """Ejecuta makensis para generar el instalador .exe"""
+    print("\n" + "=" * 60)
+    print("COMPILANDO INSTALADOR NSIS")
+    print("=" * 60)
+
+    project_dir = Path(__file__).parent
+    nsis_script = project_dir / "installer.nsi"
+    makensis = shutil.which("makensis")
+
+    if not nsis_script.exists():
+        print("✗ Script NSIS no encontrado. Ejecuta create_nsis_script primero.")
+        return False
+
+    if not makensis:
+        print("✗ NSIS (makensis) no está en PATH. Instálalo desde https://nsis.sourceforge.io/Download y reinicia la terminal.")
+        return False
+
+    try:
+        subprocess.run([makensis, str(nsis_script)], check=True)
+        setup_path = project_dir / "dist" / "SoundBoardManager-Setup.exe"
+        if setup_path.exists():
+            print(f"✓ Instalador generado: {setup_path}")
+            return True
+        print("✗ makensis se ejecutó pero no se encontró el instalador.")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Error ejecutando makensis: {e}")
+        return False
+
+def install_built_setup():
+    """Ejecuta el instalador generado en modo silencioso para instalarlo localmente."""
+    print("\n" + "=" * 60)
+    print("INSTALANDO APLICACIÓN (SILENCIOSO)")
+    print("=" * 60)
+
+    project_dir = Path(__file__).parent
+    setup_path = project_dir / "dist" / "SoundBoardManager-Setup.exe"
+
+    if not setup_path.exists():
+        print("✗ No se encontró dist/SoundBoardManager-Setup.exe. Ejecuta el paso de NSIS.")
+        return False
+
+    try:
+        subprocess.run([str(setup_path), "/S"], check=True)
+        print("✓ Instalación completada. La app se agregará al inicio de Windows.")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Error instalando el setup: {e}")
         return False
 
 def main():
@@ -270,6 +317,14 @@ def main():
     if not create_nsis_script():
         success = False
     
+    # Compilar instalador NSIS
+    if success and not build_nsis_installer():
+        success = False
+    
+    # Instalar automáticamente (silent)
+    if success and not install_built_setup():
+        success = False
+    
     # Resumen
     print("\n" + "=" * 60)
     if success:
@@ -277,12 +332,10 @@ def main():
         print("=" * 60)
         print("\nArchivos generados:")
         print("  • Portable: dist/portable/SoundBoardManager-Portable.exe")
-        print("  • Instalable: dist/installer/SoundBoardManager/")
+        print("  • Instalable (carpeta): dist/installer/SoundBoardManager/")
         print("  • Script instalador: installer.nsi")
-        print("\nPróximos pasos:")
-        print("  1. Probar la versión portable")
-        print("  2. Instalar NSIS y ejecutar: makensis installer.nsi")
-        print("  3. El instalador se creará en: dist/SoundBoardManager-Setup.exe")
+        print("  • Instalador NSIS: dist/SoundBoardManager-Setup.exe")
+        print("\nInstalación completada en el sistema local (modo silencioso).")
     else:
         print("✗ BUILD COMPLETADO CON ERRORES")
         print("=" * 60)

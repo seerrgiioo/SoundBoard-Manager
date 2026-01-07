@@ -26,11 +26,15 @@ def _safe_import_comtypes():
     import sys
 
     try:
-        if 'comtypes' in sys.modules:
-            mod = sys.modules['comtypes']
-            if '_compointer_base' not in mod.__dict__:
-                mod.__dict__['_compointer_base'] = object
-            return mod
+        # Si hay un import previo fallido, limpiamos
+        for name in list(sys.modules.keys()):
+            if name.startswith('comtypes'):
+                sys.modules.pop(name, None)
+
+        import ctypes
+
+        class _PointerDummy(ctypes.c_void_p):
+            pass
 
         spec = importlib.util.find_spec('comtypes')
         if not spec or not spec.loader:
@@ -38,7 +42,7 @@ def _safe_import_comtypes():
             return None
 
         mod = importlib.util.module_from_spec(spec)
-        mod.__dict__['_compointer_base'] = object
+        mod.__dict__['_compointer_base'] = _PointerDummy
         sys.modules['comtypes'] = mod
         spec.loader.exec_module(mod)
         return mod
@@ -47,11 +51,193 @@ def _safe_import_comtypes():
         return None
 
 
+def _ensure_commethod():
+    """Garantiza que comtypes exponga COMMETHOD (faltante en algunos builds)."""
+    try:
+        import comtypes
+        if hasattr(comtypes, "COMMETHOD"):
+            return
+        try:
+            from comtypes import _meta
+            if hasattr(_meta, "COMMETHOD"):
+                comtypes.COMMETHOD = _meta.COMMETHOD  # type: ignore[attr-defined]
+                return
+        except Exception:
+            pass
+        try:
+            from comtypes import _cominterface
+            if hasattr(_cominterface, "COMMETHOD"):
+                comtypes.COMMETHOD = _cominterface.COMMETHOD  # type: ignore[attr-defined]
+                return
+        except Exception:
+            pass
+        try:
+            from comtypes import _methods
+            if hasattr(_methods, "COMMETHOD"):
+                comtypes.COMMETHOD = _methods.COMMETHOD  # type: ignore[attr-defined]
+                return
+        except Exception:
+            pass
+        # Fallback: definir stub mínimo para permitir import de pycaw
+        def _commethod_stub(*args, **kwargs):  # type: ignore[unused-argument]
+            return (args, kwargs)
+        comtypes.COMMETHOD = _commethod_stub  # type: ignore[assignment]
+        print("[COMTYPES] COMMETHOD no disponible tras intentos de parcheo")
+    except Exception as e:
+        print(f"[COMTYPES] Error asegurando COMMETHOD: {e}")
+
+
+def _ensure_iunknown():
+    """Garantiza que comtypes exponga IUnknown (necesario para pycaw)."""
+    try:
+        import comtypes
+        if hasattr(comtypes, "IUnknown"):
+            return
+        try:
+            from comtypes import _cominterface
+            if hasattr(_cominterface, "IUnknown"):
+                comtypes.IUnknown = _cominterface.IUnknown  # type: ignore[attr-defined]
+                return
+        except Exception:
+            pass
+        try:
+            from comtypes import _comobject
+            if hasattr(_comobject, "IUnknown"):
+                comtypes.IUnknown = _comobject.IUnknown  # type: ignore[attr-defined]
+                return
+        except Exception:
+            pass
+        # Fallback mínimo para evitar ImportError; puede limitar funcionalidad COM
+        import ctypes
+        class _IUnknownStub(ctypes.Structure):  # pragma: no cover - stub de emergencia
+            _iid_ = None
+            _methods_ = []
+            _fields_ = []
+        comtypes.IUnknown = _IUnknownStub  # type: ignore[assignment]
+        print("[COMTYPES] IUnknown no disponible; se usó stub de emergencia")
+    except Exception as e:
+        print(f"[COMTYPES] Error asegurando IUnknown: {e}")
+
+
 try:
     import comtypes  # noqa: F401
 except Exception as e:
     print(f"[COMTYPES] Import error, applying patch: {e}")
     _safe_import_comtypes()
+_ensure_commethod()
+_ensure_iunknown()
+def _ensure_stdmethod():
+    """Garantiza que comtypes exponga STDMETHOD (alias habitual de COMMETHOD)."""
+    try:
+        import comtypes
+        if hasattr(comtypes, "STDMETHOD"):
+            return
+        # Reutilizar COMMETHOD si existe
+        if hasattr(comtypes, "COMMETHOD"):
+            comtypes.STDMETHOD = comtypes.COMMETHOD  # type: ignore[assignment]
+            return
+        # Intentar cargar desde módulos internos
+        for mod_name in ("_meta", "_methods", "_cominterface"):
+            try:
+                mod = __import__(f"comtypes.{mod_name}", fromlist=["*"])
+                if hasattr(mod, "STDMETHOD"):
+                    comtypes.STDMETHOD = getattr(mod, "STDMETHOD")  # type: ignore[assignment]
+                    return
+                if hasattr(mod, "COMMETHOD"):
+                    comtypes.STDMETHOD = getattr(mod, "COMMETHOD")  # type: ignore[assignment]
+                    return
+            except Exception:
+                pass
+        # Fallback: alias a COMMETHOD de módulo base si se definió stub antes
+        if hasattr(comtypes, "COMMETHOD"):
+            comtypes.STDMETHOD = comtypes.COMMETHOD  # type: ignore[assignment]
+            return
+        print("[COMTYPES] STDMETHOD no disponible tras intentos de parcheo")
+    except Exception as e:
+        print(f"[COMTYPES] Error asegurando STDMETHOD: {e}")
+
+_ensure_stdmethod()
+def _ensure_bstr():
+    """Garantiza que comtypes exponga BSTR (usado en automation)."""
+    try:
+        import comtypes
+        if hasattr(comtypes, "BSTR"):
+            return
+        try:
+            import comtypes.automation as _auto
+            if hasattr(_auto, "BSTR"):
+                comtypes.BSTR = _auto.BSTR  # type: ignore[assignment]
+                return
+        except Exception:
+            pass
+        import ctypes
+        comtypes.BSTR = ctypes.c_wchar_p  # type: ignore[assignment]
+        print("[COMTYPES] BSTR no encontrado; se asignó ctypes.c_wchar_p como fallback")
+    except Exception as e:
+        print(f"[COMTYPES] Error asegurando BSTR: {e}")
+
+_ensure_bstr()
+def _ensure_cocreateinstance():
+    """Garantiza que comtypes exponga CoCreateInstance (usado por pycaw)."""
+    try:
+        import comtypes
+        if hasattr(comtypes, "CoCreateInstance"):
+            return
+        try:
+            # Reutilizar implementación de comtypes.client si está disponible
+            from comtypes import client
+            def _cocreate(clsid, clsctx=None, interface=None, outer=None):
+                # Si interface es None, permitir objeto dinámico sin IID
+                dynamic = interface is None
+                return client.CreateObject(clsid, interface=interface, dynamic=dynamic)
+            comtypes.CoCreateInstance = _cocreate  # type: ignore[assignment]
+            return
+        except Exception:
+            pass
+        # Fallback mínimo: usar ole32.CoCreateInstance vía ctypes
+        try:
+            import ctypes
+            from ctypes import wintypes
+            CLSCTX_INPROC_SERVER = 1
+            CLSCTX_LOCAL_SERVER = 4
+            _ole32 = ctypes.OleDLL("ole32")
+            _ole32.CoCreateInstance.argtypes = [ctypes.c_void_p, ctypes.c_void_p, wintypes.DWORD, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+            _ole32.CoCreateInstance.restype = ctypes.c_long
+
+            def _cocreate_raw(clsid, clsctx=CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER, interface=None, outer=None):
+                iid = getattr(interface, "_iid_", None) if interface else None
+                if iid is None:
+                    try:
+                        from comtypes import IUnknown  # type: ignore
+                        iid = getattr(IUnknown, "_iid_", None)
+                    except Exception:
+                        iid = None
+                if iid is None:
+                    # Sin IID, usar IID_IUnknown
+                    from ctypes.wintypes import BYTE
+                    class GUID(ctypes.Structure):
+                        _fields_ = [("Data1", ctypes.c_ulong), ("Data2", ctypes.c_ushort), ("Data3", ctypes.c_ushort), ("Data4", BYTE * 8)]
+                    IID_IUnknown = GUID(0x00000000, 0x0000, 0x0000, (BYTE * 8)(0xC0,0x00,0x00,0x00,0x00,0x00,0x00,0x46))
+                    iid = IID_IUnknown
+                if hasattr(iid, '__call__'):
+                    iid = iid()
+                punk = ctypes.c_void_p()
+                hr = _ole32.CoCreateInstance(ctypes.byref(clsid), None, clsctx, ctypes.byref(iid), ctypes.byref(punk))
+                if hr != 0:
+                    raise OSError(hr, "CoCreateInstance failed")
+                if interface:
+                    return ctypes.cast(punk, ctypes.POINTER(interface))
+                return punk
+
+            comtypes.CoCreateInstance = _cocreate_raw  # type: ignore[assignment]
+            return
+        except Exception:
+            pass
+        print("[COMTYPES] CoCreateInstance no disponible tras intentos de parcheo")
+    except Exception as e:
+        print(f"[COMTYPES] Error asegurando CoCreateInstance: {e}")
+
+_ensure_cocreateinstance()
 from pycaw.pycaw import AudioUtilities
 
 # Variables globales
