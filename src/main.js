@@ -12,6 +12,14 @@ let backendProcess = null;
 const settingsPath = path.join(app.getPath('userData'), 'settings.json');
 const autoLauncher = new AutoLaunch({ name: 'SoundBoard Manager' });
 
+// Global error handler to prevent uncaught exception dialog
+process.on('uncaughtException', (err) => {
+  try {
+    console.error('[GLOBAL] Uncaught exception:', err);
+    // Avoid noisy dialogs; app continues running
+  } catch {}
+});
+
 // Sistema de i18n simplificado
 let currentLanguage = 'en';
 let translations = {};
@@ -112,6 +120,11 @@ function startBackend() {
 
     try {
       console.log('[BACKEND] Starting packaged backend:', exePath);
+      // Double-check existence right before spawn
+      if (!fs.existsSync(exePath)) {
+        console.error('[BACKEND] Exe disappeared before spawn:', exePath);
+        return;
+      }
       backendProcess = spawn(exePath, [], {
         detached: true,
         stdio: 'ignore',
@@ -139,6 +152,10 @@ function startBackend() {
     const pyCmd = 'py';
     try {
       console.log('[BACKEND] Starting dev backend:', scriptPath);
+      if (!fs.existsSync(scriptPath)) {
+        console.error('[BACKEND] Dev script not found:', scriptPath);
+        return;
+      }
       backendProcess = spawn(pyCmd, [scriptPath], {
         cwd: __dirname,
         detached: true,
