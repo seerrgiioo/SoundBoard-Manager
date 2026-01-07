@@ -5,11 +5,32 @@ Versión simplificada con UI nativa Tkinter (sin dependencias pesadas)
 Ejecuta en background: la UI está oculta por defecto y se muestra solo al usar la rueda multimedia.
 """
 
-from . import media_wheel
-from . import i18n
+import sys
+import os
 import threading
 import json
 from pathlib import Path
+
+# Detectar si estamos en un ejecutable empaquetado
+if getattr(sys, 'frozen', False):
+    # Ejecutando como PyInstaller bundle
+    # Añadir el directorio base al path
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller crea una carpeta temporal y guarda el path en _MEIPASS
+        sys.path.insert(0, sys._MEIPASS)
+    # Imports absolutos
+    import media_wheel
+    import i18n
+else:
+    # Ejecutando como script normal
+    # Imports relativos
+    try:
+        from . import media_wheel
+        from . import i18n
+    except ImportError:
+        # Si falla, intentar imports absolutos
+        import media_wheel
+        import i18n
 
 # Opcional: bandeja del sistema para salir
 def on_exit(icon, item):
@@ -77,7 +98,13 @@ def _start_tray():
 
         # Obtener idioma de configuración para el menú
         try:
-            from . import ui_qt
+            if getattr(sys, 'frozen', False):
+                import ui_qt
+            else:
+                try:
+                    from . import ui_qt
+                except ImportError:
+                    import ui_qt
             config = ui_qt.load_config()
             lang = config.get('language', 'es')
             i18n_inst = i18n.get_i18n(lang)
@@ -108,7 +135,13 @@ def update_tray_menu():
     global tray_icon
     if tray_icon:
         try:
-            from . import ui_qt
+            if getattr(sys, 'frozen', False):
+                import ui_qt
+            else:
+                try:
+                    from . import ui_qt
+                except ImportError:
+                    import ui_qt
             config = ui_qt.load_config()
             lang = config.get('language', 'es')
             i18n_inst = i18n.get_i18n(lang)
@@ -139,7 +172,13 @@ def run_ui():
     """Inicia la UI Qt (corre en hilo principal)"""
     global app
     try:
-        from . import ui_qt
+        if getattr(sys, 'frozen', False):
+            import ui_qt
+        else:
+            try:
+                from . import ui_qt
+            except ImportError:
+                import ui_qt
         app = ui_qt.SoundBoardUI(None, media_hw)
         app.run()
     except Exception as e:
