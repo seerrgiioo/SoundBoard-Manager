@@ -1,16 +1,26 @@
-MIT License
+Non-Commercial License
 
 Copyright (c) 2026 seerrgiioo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, and distribute the Software for NON-COMMERCIAL purposes only,
+subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+2. The Software may NOT be used for commercial purposes. Commercial purposes include,
+   but are not limited to:
+   - Selling the Software or derivatives
+   - Using the Software in a commercial product or service
+   - Using the Software to generate revenue
+
+3. Modifications and derivative works are permitted for non-commercial use only,
+   and must be distributed under the same license.
+
+4. Contributors may submit improvements and modifications, which remain subject
+   to this license.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

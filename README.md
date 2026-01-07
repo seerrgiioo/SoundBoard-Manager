@@ -2,7 +2,7 @@
 
 A powerful Windows application for per-application volume control with keyboard shortcuts. Control individual application volumes without touching your mouse.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-Non--Commercial-orange.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![Electron](https://img.shields.io/badge/electron-28.0.0-blue.svg)
@@ -34,7 +34,7 @@ A powerful Windows application for per-application volume control with keyboard 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/soundboard-manager.git
+   git clone https://github.com/seerrgiioo/soundboard-manager.git
    cd soundboard-manager
    ```
 
@@ -138,7 +138,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a **Non-Commercial License**. You are free to use, modify, and distribute this software for non-commercial purposes only. Commercial use is strictly prohibited.
+
+See the [LICENSE](LICENSE) file for full details.
 
 ## 🐛 Known Issues
 
@@ -166,5 +168,5 @@ For questions or support, please open an issue on GitHub.
 
 ---
 
-Made with ❤️ by the SoundBoard Manager team
+Made with ❤️ by seerrgiioo
 
