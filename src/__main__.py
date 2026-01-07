@@ -6,6 +6,7 @@ Ejecuta en background: la UI está oculta por defecto y se muestra solo al usar 
 """
 
 from . import media_wheel
+from . import i18n
 import threading
 import json
 from pathlib import Path
@@ -69,15 +70,24 @@ def _start_tray():
             except Exception:
                 pass
 
+        # Obtener idioma de configuración para el menú
+        try:
+            from . import ui_qt
+            config = ui_qt.load_config()
+            lang = config.get('language', 'es')
+            i18n_inst = i18n.get_i18n(lang)
+        except Exception:
+            i18n_inst = i18n.get_i18n('es')
+
         icon = pystray.Icon(
             'SoundBoard',
             create_image(),
             'SoundBoard',
             menu=pystray.Menu(
-                pystray.MenuItem('Mostrar', on_show),
-                pystray.MenuItem('Ocultar', on_hide),
-                pystray.MenuItem('Configuración', on_settings),
-                pystray.MenuItem('Salir', on_exit)
+                pystray.MenuItem(i18n_inst.t('tray_show'), on_show),
+                pystray.MenuItem(i18n_inst.t('tray_hide'), on_hide),
+                pystray.MenuItem(i18n_inst.t('tray_settings'), on_settings),
+                pystray.MenuItem(i18n_inst.t('tray_exit'), on_exit)
             )
         )
         icon.run()

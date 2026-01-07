@@ -1,0 +1,12 @@
+{
+  "mixer_title": "ボリュームミキサー",
+  "no_apps": "アクティブなオーディオを持つ\nアプリケーションがありません",
+  "position_label": "画面上の位置:",
+  "language_label": "言語 / Language:",
+  "cancel": "キャンセル",
+  "save": "保存",
+  "tray_show": "表示",
+  "tray_hide": "非表示",
+  "tray_settings": "設定",
+  "tray_exit": "終了"
+}

@@ -1,0 +1,12 @@
+{
+  "mixer_title": "Mélangeur de volume",
+  "no_apps": "Aucune application\navec audio actif",
+  "position_label": "Position à l'écran:",
+  "language_label": "Langue / Language:",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "tray_show": "Afficher",
+  "tray_hide": "Masquer",
+  "tray_settings": "Paramètres",
+  "tray_exit": "Quitter"
+}

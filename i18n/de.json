@@ -1,0 +1,12 @@
+{
+  "mixer_title": "Lautstärkemixer",
+  "no_apps": "Keine Anwendungen\nmit aktivem Audio",
+  "position_label": "Bildschirmposition:",
+  "language_label": "Sprache / Language:",
+  "cancel": "Abbrechen",
+  "save": "Speichern",
+  "tray_show": "Anzeigen",
+  "tray_hide": "Verbergen",
+  "tray_settings": "Einstellungen",
+  "tray_exit": "Beenden"
+}

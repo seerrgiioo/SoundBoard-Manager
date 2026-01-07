@@ -1,0 +1,12 @@
+{
+  "mixer_title": "音量混音器",
+  "no_apps": "没有应用程序\n有活动音频",
+  "position_label": "屏幕位置:",
+  "language_label": "语言 / Language:",
+  "cancel": "取消",
+  "save": "保存",
+  "tray_show": "显示",
+  "tray_hide": "隐藏",
+  "tray_settings": "设置",
+  "tray_exit": "退出"
+}

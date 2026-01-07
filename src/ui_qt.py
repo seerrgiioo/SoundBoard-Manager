@@ -16,6 +16,7 @@ from typing import Optional, List, Tuple
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from . import backend
+from . import i18n
 
 DARK_BG = QtGui.QColor("#1A1A1B")
 DARK_CARD = QtGui.QColor("#1E1E20")
@@ -60,6 +61,8 @@ class QtOverlay(QtWidgets.QWidget):
         super().__init__(parent)
         self.controller = controller
         self.config = load_config()
+        # Inicializar sistema de traducción
+        self.i18n = i18n.get_i18n(self.config.get('language', 'es'))
 
         # Ventana sin borde, siempre arriba, tipo herramienta (oculta de taskbar)
         flags = (
@@ -172,7 +175,7 @@ class QtOverlay(QtWidgets.QWidget):
             p.setPen(WHITE)
             title_font = QtGui.QFont("Segoe UI", 18, QtGui.QFont.Bold)
             p.setFont(title_font)
-            p.drawText(title_rect, QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter, "Mezclador de volumen")
+            p.drawText(title_rect, QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter, self.i18n.t('mixer_title'))
 
             # Modo
             # mode_text = ""
@@ -300,7 +303,7 @@ class QtOverlay(QtWidgets.QWidget):
             if not sessions:
                 p.setPen(GREY)
                 p.setFont(QtGui.QFont("Segoe UI", 13))
-                p.drawText(panel, QtCore.Qt.AlignCenter, "No hay aplicaciones\ncon audio activo")
+                p.drawText(panel, QtCore.Qt.AlignCenter, self.i18n.t('no_apps'))
         finally:
             try:
                 p.end()
@@ -358,12 +361,18 @@ class QtOverlay(QtWidgets.QWidget):
     
     def _show_settings_safe(self):
         """Muestra diálogo de configuración (thread-safe)"""
-        dialog = SettingsDialog(self.config, self)
+        dialog = SettingsDialog(self.config, self.i18n, self)
         if dialog.exec() == QtWidgets.QDialog.Accepted:
             new_config = dialog.get_config()
+            old_lang = self.config.get('language', 'es')
             self.config = new_config
+            new_lang = self.config.get('language', 'es')
             if save_config(self.config):
-                print(f"[CONFIG] Configuración guardada: posición={self.config.get('position')}, idioma={self.config.get('language')}")
+                print(f"[CONFIG] Configuración guardada: posición={self.config.get('position')}, idioma={new_lang}")
+                # Actualizar idioma si cambió
+                if old_lang != new_lang:
+                    self.i18n.set_language(new_lang)
+                    print(f"[I18N] Idioma cambiado a {new_lang}")
                 self._apply_position_from_config()
                 # Si está visible, mostrar brevemente para confirmar nueva posición
                 if self.isVisible():
@@ -372,9 +381,10 @@ class QtOverlay(QtWidgets.QWidget):
                 print("[CONFIG] Error al guardar configuración")
 
 class SettingsDialog(QtWidgets.QDialog):
-    def __init__(self, config, parent=None):
+    def __init__(self, config, i18n_instance, parent=None):
         super().__init__(parent)
         self.config = config.copy()
+        self.i18n = i18n_instance
         self.setWindowTitle("Configuración")
         self.setFixedSize(450, 400)
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
@@ -411,7 +421,7 @@ class SettingsDialog(QtWidgets.QDialog):
         layout.addWidget(icon_label, alignment=QtCore.Qt.AlignCenter)
         
         # Posición
-        pos_label = QtWidgets.QLabel("Posición en pantalla:")
+        pos_label = QtWidgets.QLabel(self.i18n.t('position_label'))
         pos_label.setStyleSheet("font-size: 13px; color: white;")
         layout.addWidget(pos_label)
         
@@ -454,7 +464,7 @@ class SettingsDialog(QtWidgets.QDialog):
         layout.addWidget(self.pos_combo)
         
         # Idioma
-        lang_label = QtWidgets.QLabel("Idioma / Language:")
+        lang_label = QtWidgets.QLabel(self.i18n.t('language_label'))
         lang_label.setStyleSheet("font-size: 13px; color: white; margin-top: 10px;")
         layout.addWidget(lang_label)
         
@@ -475,7 +485,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # Botones
         btn_layout = QtWidgets.QHBoxLayout()
         
-        cancel_btn = QtWidgets.QPushButton("Cancelar")
+        cancel_btn = QtWidgets.QPushButton(self.i18n.t('cancel'))
         cancel_btn.setStyleSheet("""
             QPushButton {
                 background: #2D2D2F;
@@ -491,7 +501,7 @@ class SettingsDialog(QtWidgets.QDialog):
         """)
         cancel_btn.clicked.connect(self.reject)
         
-        save_btn = QtWidgets.QPushButton("Guardar")
+        save_btn = QtWidgets.QPushButton(self.i18n.t('save'))
         save_btn.setStyleSheet("""
             QPushButton {
                 background: white;
