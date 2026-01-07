@@ -23,7 +23,7 @@
 
 ## 📸 Screenshots
 
-![Preview Banner](./src/assets/banner.png)
+![Preview Banner](./src/assets/example.png)
 ## 🚀 Quick Start
 
 ### Prerequisites
