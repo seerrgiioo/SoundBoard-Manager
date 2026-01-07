@@ -9,14 +9,25 @@ Overlay minimalista, siempre encima, fondo translúcido y clic-through real.
 from __future__ import annotations
 
 import os
+import sys
 import time
 import json
 from pathlib import Path
 from typing import Optional, List, Tuple
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from . import backend
-from . import i18n
+
+# Imports compatibles con PyInstaller
+if getattr(sys, 'frozen', False):
+    import backend
+    import i18n
+else:
+    try:
+        from . import backend
+        from . import i18n
+    except ImportError:
+        import backend
+        import i18n
 
 DARK_BG = QtGui.QColor("#1A1A1B")
 DARK_CARD = QtGui.QColor("#1E1E20")
