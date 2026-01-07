@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "Paramètres",
+    "position": "Position",
+    "appearance": "Apparence",
+    "volume": "Volume",
+    "controls": "Contrôles",
+    "language": "Langue",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "Haut\nGauche",
+    "topCenter": "Haut\nCentre",
+    "topRight": "Haut\nDroite",
+    "middleLeft": "Milieu\nGauche",
+    "middleCenter": "Centre\nCentre",
+    "middleRight": "Milieu\nDroite",
+    "bottomLeft": "Bas\nGauche",
+    "bottomCenter": "Bas\nCentre",
+    "bottomRight": "Bas\nDroite"
+  },
+  "appearance": {
+    "opacity": "Opacité"
+  },
+  "volume": {
+    "volumeDelta": "Changement de volume"
+  },
+  "controls": {
+    "volumeUp": "Volume +",
+    "volumeDown": "Volume -",
+    "navigation": "Navigation"
+  },
+  "tray": {
+    "settings": "Paramètres",
+    "exit": "Quitter"
+  }
+}

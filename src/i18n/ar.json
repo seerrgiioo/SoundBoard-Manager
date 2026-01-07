@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "الإعدادات",
+    "position": "الموضع",
+    "appearance": "المظهر",
+    "volume": "الصوت",
+    "controls": "التحكم",
+    "language": "اللغة",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "أعلى\nيسار",
+    "topCenter": "أعلى\nوسط",
+    "topRight": "أعلى\nيمين",
+    "middleLeft": "وسط\nيسار",
+    "middleCenter": "مركز\nمركز",
+    "middleRight": "وسط\nيمين",
+    "bottomLeft": "أسفل\nيسار",
+    "bottomCenter": "أسفل\nوسط",
+    "bottomRight": "أسفل\nيمين"
+  },
+  "appearance": {
+    "opacity": "الشفافية"
+  },
+  "volume": {
+    "volumeDelta": "تغيير الصوت"
+  },
+  "controls": {
+    "volumeUp": "رفع الصوت",
+    "volumeDown": "خفض الصوت",
+    "navigation": "التنقل"
+  },
+  "tray": {
+    "settings": "الإعدادات",
+    "exit": "خروج"
+  }
+}

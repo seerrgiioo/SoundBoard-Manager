@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "設定",
+    "position": "位置",
+    "appearance": "外観",
+    "volume": "音量",
+    "controls": "コントロール",
+    "language": "言語",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "上\n左",
+    "topCenter": "上\n中央",
+    "topRight": "上\n右",
+    "middleLeft": "中\n左",
+    "middleCenter": "中央\n中央",
+    "middleRight": "中\n右",
+    "bottomLeft": "下\n左",
+    "bottomCenter": "下\n中央",
+    "bottomRight": "下\n右"
+  },
+  "appearance": {
+    "opacity": "不透明度"
+  },
+  "volume": {
+    "volumeDelta": "音量変更"
+  },
+  "controls": {
+    "volumeUp": "音量アップ",
+    "volumeDown": "音量ダウン",
+    "navigation": "ナビゲーション"
+  },
+  "tray": {
+    "settings": "設定",
+    "exit": "終了"
+  }
+}

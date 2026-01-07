@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "సెట్టింగ్‌లు",
+    "position": "స్థానం",
+    "appearance": "రూపం",
+    "volume": "వాల్యూమ్",
+    "controls": "నియంత్రణలు",
+    "language": "భాష",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "పైన\nఎడమ",
+    "topCenter": "పైన\nమధ్య",
+    "topRight": "పైన\nకుడి",
+    "middleLeft": "మధ్య\nఎడమ",
+    "middleCenter": "మధ్య\nమధ్య",
+    "middleRight": "మధ్య\nకుడి",
+    "bottomLeft": "క్రింద\nఎడమ",
+    "bottomCenter": "క్రింద\nమధ్య",
+    "bottomRight": "క్రింద\nకుడి"
+  },
+  "appearance": {
+    "opacity": "అపారదర్శకత"
+  },
+  "volume": {
+    "volumeDelta": "వాల్యూమ్ మార్పు"
+  },
+  "controls": {
+    "volumeUp": "వాల్యూమ్ పెంచు",
+    "volumeDown": "వాల్యూమ్ తగ్గించు",
+    "navigation": "నావిగేషన్"
+  },
+  "tray": {
+    "settings": "సెట్టింగ్‌లు",
+    "exit": "నిష్క్రమించు"
+  }
+}

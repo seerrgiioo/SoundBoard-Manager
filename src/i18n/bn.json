@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "সেটিংস",
+    "position": "অবস্থান",
+    "appearance": "চেহারা",
+    "volume": "ভলিউম",
+    "controls": "নিয়ন্ত্রণ",
+    "language": "ভাষা",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "উপরে\nবাম",
+    "topCenter": "উপরে\nমাঝে",
+    "topRight": "উপরে\nডান",
+    "middleLeft": "মাঝে\nবাম",
+    "middleCenter": "কেন্দ্র\nকেন্দ্র",
+    "middleRight": "মাঝে\nডান",
+    "bottomLeft": "নিচে\nবাম",
+    "bottomCenter": "নিচে\nমাঝে",
+    "bottomRight": "নিচে\nডান"
+  },
+  "appearance": {
+    "opacity": "অস্বচ্ছতা"
+  },
+  "volume": {
+    "volumeDelta": "ভলিউম পরিবর্তন"
+  },
+  "controls": {
+    "volumeUp": "ভলিউম বাড়ান",
+    "volumeDown": "ভলিউম কমান",
+    "navigation": "নেভিগেশন"
+  },
+  "tray": {
+    "settings": "সেটিংস",
+    "exit": "প্রস্থান"
+  }
+}

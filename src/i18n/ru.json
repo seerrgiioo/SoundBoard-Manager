@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "Настройки",
+    "position": "Позиция",
+    "appearance": "Внешний вид",
+    "volume": "Громкость",
+    "controls": "Управление",
+    "language": "Язык",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "Вверху\nСлева",
+    "topCenter": "Вверху\nПо центру",
+    "topRight": "Вверху\nСправа",
+    "middleLeft": "По центру\nСлева",
+    "middleCenter": "Центр\nЦентр",
+    "middleRight": "По центру\nСправа",
+    "bottomLeft": "Внизу\nСлева",
+    "bottomCenter": "Внизу\nПо центру",
+    "bottomRight": "Внизу\nСправа"
+  },
+  "appearance": {
+    "opacity": "Прозрачность"
+  },
+  "volume": {
+    "volumeDelta": "Изменение громкости"
+  },
+  "controls": {
+    "volumeUp": "Громче",
+    "volumeDown": "Тише",
+    "navigation": "Навигация"
+  },
+  "tray": {
+    "settings": "Настройки",
+    "exit": "Выход"
+  }
+}

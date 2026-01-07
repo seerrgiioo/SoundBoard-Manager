@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "ترتیبات",
+    "position": "پوزیشن",
+    "appearance": "ظاہری شکل",
+    "volume": "والیوم",
+    "controls": "کنٹرولز",
+    "language": "زبان",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "اوپر\nبائیں",
+    "topCenter": "اوپر\nمرکز",
+    "topRight": "اوپر\nدائیں",
+    "middleLeft": "درمیان\nبائیں",
+    "middleCenter": "مرکز\nمرکز",
+    "middleRight": "درمیان\nدائیں",
+    "bottomLeft": "نیچے\nبائیں",
+    "bottomCenter": "نیچے\nمرکز",
+    "bottomRight": "نیچے\nدائیں"
+  },
+  "appearance": {
+    "opacity": "شفافیت"
+  },
+  "volume": {
+    "volumeDelta": "والیوم تبدیلی"
+  },
+  "controls": {
+    "volumeUp": "والیوم بڑھائیں",
+    "volumeDown": "والیوم کم کریں",
+    "navigation": "نیویگیشن"
+  },
+  "tray": {
+    "settings": "ترتیبات",
+    "exit": "خروج"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "설정",
+    "position": "위치",
+    "appearance": "외관",
+    "volume": "볼륨",
+    "controls": "컨트롤",
+    "language": "언어",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "상단\n좌측",
+    "topCenter": "상단\n중앙",
+    "topRight": "상단\n우측",
+    "middleLeft": "중간\n좌측",
+    "middleCenter": "중앙\n중앙",
+    "middleRight": "중간\n우측",
+    "bottomLeft": "하단\n좌측",
+    "bottomCenter": "하단\n중앙",
+    "bottomRight": "하단\n우측"
+  },
+  "appearance": {
+    "opacity": "불투명도"
+  },
+  "volume": {
+    "volumeDelta": "볼륨 변경"
+  },
+  "controls": {
+    "volumeUp": "볼륨 업",
+    "volumeDown": "볼륨 다운",
+    "navigation": "탐색"
+  },
+  "tray": {
+    "settings": "설정",
+    "exit": "종료"
+  }
+}

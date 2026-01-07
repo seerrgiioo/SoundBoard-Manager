@@ -1,0 +1,8 @@
+pycaw==20251023
+keyboard==0.13.5
+comtypes==1.1.14
+psutil==7.2.1
+pillow==12.1.0
+websockets==15.0.1
+pywin32==311
+numpy==2.4.0

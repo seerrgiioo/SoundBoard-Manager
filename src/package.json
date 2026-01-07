@@ -1,0 +1,45 @@
+{
+  "name": "soundboard-manager",
+  "version": "1.0.0",
+  "description": "SoundBoard Manager - Control individual de volumen por aplicación",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "build": "electron-builder",
+    "build:exe": "electron-builder --win --publish never"
+  },
+  "keywords": [
+    "volume",
+    "audio",
+    "mixer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "auto-launch": "^5.0.6"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.soundboard.manager",
+    "productName": "SoundBoard Manager",
+    "files": [
+      "**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/backend",
+        "to": "backend"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "SoundBoard-Manager-${version}-Setup.${ext}",
+      "icon": "assets/icon.png"
+    },
+    "icon": "assets/icon.png"
+  }
+}

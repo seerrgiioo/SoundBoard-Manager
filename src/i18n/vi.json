@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "Cài đặt",
+    "position": "Vị trí",
+    "appearance": "Giao diện",
+    "volume": "Âm lượng",
+    "controls": "Điều khiển",
+    "language": "Ngôn ngữ",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "Trên\nTrái",
+    "topCenter": "Trên\nGiữa",
+    "topRight": "Trên\nPhải",
+    "middleLeft": "Giữa\nTrái",
+    "middleCenter": "Trung tâm\nTrung tâm",
+    "middleRight": "Giữa\nPhải",
+    "bottomLeft": "Dưới\nTrái",
+    "bottomCenter": "Dưới\nGiữa",
+    "bottomRight": "Dưới\nPhải"
+  },
+  "appearance": {
+    "opacity": "Độ mờ"
+  },
+  "volume": {
+    "volumeDelta": "Thay đổi âm lượng"
+  },
+  "controls": {
+    "volumeUp": "Tăng âm lượng",
+    "volumeDown": "Giảm âm lượng",
+    "navigation": "Điều hướng"
+  },
+  "tray": {
+    "settings": "Cài đặt",
+    "exit": "Thoát"
+  }
+}

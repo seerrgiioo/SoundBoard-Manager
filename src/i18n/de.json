@@ -1,0 +1,37 @@
+{
+  "config": {
+    "title": "Einstellungen",
+    "position": "Position",
+    "appearance": "Aussehen",
+    "volume": "Lautstärke",
+    "controls": "Steuerung",
+    "language": "Sprache",
+    "close": "✕"
+  },
+  "position": {
+    "topLeft": "Oben\nLinks",
+    "topCenter": "Oben\nMitte",
+    "topRight": "Oben\nRechts",
+    "middleLeft": "Mitte\nLinks",
+    "middleCenter": "Mitte\nMitte",
+    "middleRight": "Mitte\nRechts",
+    "bottomLeft": "Unten\nLinks",
+    "bottomCenter": "Unten\nMitte",
+    "bottomRight": "Unten\nRechts"
+  },
+  "appearance": {
+    "opacity": "Deckkraft"
+  },
+  "volume": {
+    "volumeDelta": "Lautstärkeänderung"
+  },
+  "controls": {
+    "volumeUp": "Lauter",
+    "volumeDown": "Leiser",
+    "navigation": "Navigation"
+  },
+  "tray": {
+    "settings": "Einstellungen",
+    "exit": "Beenden"
+  }
+}

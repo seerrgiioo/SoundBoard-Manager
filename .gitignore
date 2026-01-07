@@ -1,0 +1,95 @@
+# ===========================
+# Python
+# ===========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.Python
+build/
+dist/
+*.spec
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv
+
+# ===========================
+# Node.js / Electron
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm
+
+# Electron Build Output
+src/dist/
+src/node_modules/
+out/
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+
+# ===========================
+# IDE & Editors
+# ===========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ===========================
+# Operating System
+# ===========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===========================
+# Application Specific
+# ===========================
+# User settings (generated at runtime)
+settings.json
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# ===========================
+# Build Artifacts
+# ===========================
+# PyInstaller generated files
+*.toc
+*.pyz
+*.pkg
+warn-*.txt
+xref-*.html
+localpycs/
+
+# Electron Builder
+.icon-ico/
+builder-debug.yml
+builder-effective-config.yaml
+*.blockmap
