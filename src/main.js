@@ -88,18 +88,48 @@ function getPositionCoordinates(positionKey) {
 function startBackend() {
   if (backendProcess) return;
 
-  const exePath = app.isPackaged 
-    ? path.join(process.resourcesPath, 'backend', 'SoundManagerBackend.exe')
-    : path.join(__dirname, 'backend.py');
-  
-  const command = app.isPackaged ? exePath : 'py';
-  const args = app.isPackaged ? [] : [exePath];
-  
-  try {
-    backendProcess = spawn(command, args, { detached: true, stdio: 'ignore', cwd: __dirname });
-    backendProcess.unref();
-  } catch (err) {
-    console.error('[BACKEND] Error:', err);
+  if (app.isPackaged) {
+    // Try multiple candidate paths for the packaged backend exe
+    const candidates = [
+      path.join(process.resourcesPath, 'backend', 'SoundManagerBackend.exe'),
+      path.join(path.dirname(process.execPath), 'resources', 'backend', 'SoundManagerBackend.exe')
+    ];
+
+    const exePath = candidates.find((p) => {
+      try { return fs.existsSync(p); } catch { return false; }
+    });
+
+    if (!exePath) {
+      console.error('[BACKEND] Packaged backend not found in candidates:', candidates);
+      return; // don't crash main process
+    }
+
+    try {
+      console.log('[BACKEND] Starting packaged backend:', exePath);
+      backendProcess = spawn(exePath, [], {
+        detached: true,
+        stdio: 'ignore',
+        cwd: path.dirname(exePath)
+      });
+      backendProcess.unref();
+    } catch (err) {
+      console.error('[BACKEND] Failed to start packaged backend:', err);
+    }
+  } else {
+    // Development: run Python script
+    const scriptPath = path.join(__dirname, 'backend.py');
+    const pyCmd = 'py';
+    try {
+      console.log('[BACKEND] Starting dev backend:', scriptPath);
+      backendProcess = spawn(pyCmd, [scriptPath], {
+        cwd: __dirname,
+        detached: true,
+        stdio: 'ignore'
+      });
+      backendProcess.unref();
+    } catch (err) {
+      console.error('[BACKEND] Failed to start dev backend:', err);
+    }
   }
 }
 
