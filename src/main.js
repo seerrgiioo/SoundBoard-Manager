@@ -115,7 +115,19 @@ function startBackend() {
       backendProcess = spawn(exePath, [], {
         detached: true,
         stdio: 'ignore',
-        cwd: path.dirname(exePath)
+        cwd: path.dirname(exePath),
+        windowsHide: true
+      });
+      backendProcess.on('error', (err) => {
+        console.error('[BACKEND] spawn error (packaged):', err);
+        try {
+          dialog.showErrorBox('Backend error', 'Failed to start backend. The app will continue with limited functionality.');
+        } catch {}
+        backendProcess = null;
+      });
+      backendProcess.on('exit', (code, signal) => {
+        console.log(`[BACKEND] exited (packaged) code=${code} signal=${signal}`);
+        backendProcess = null;
       });
       backendProcess.unref();
     } catch (err) {
@@ -130,7 +142,16 @@ function startBackend() {
       backendProcess = spawn(pyCmd, [scriptPath], {
         cwd: __dirname,
         detached: true,
-        stdio: 'ignore'
+        stdio: 'ignore',
+        windowsHide: true
+      });
+      backendProcess.on('error', (err) => {
+        console.error('[BACKEND] spawn error (dev):', err);
+        backendProcess = null;
+      });
+      backendProcess.on('exit', (code, signal) => {
+        console.log(`[BACKEND] exited (dev) code=${code} signal=${signal}`);
+        backendProcess = null;
       });
       backendProcess.unref();
     } catch (err) {
