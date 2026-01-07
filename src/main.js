@@ -135,6 +135,10 @@ function createWindow() {
     }
   });
 
+  // Forzar nivel máximo de prioridad (sobre juegos y apps pantalla completa)
+  mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
   mainWindow.loadFile(path.join(__dirname, 'ui', 'index.html'));
   
   // Posicionar ventana
@@ -153,7 +157,9 @@ function createWindow() {
   
   ipcMain.on('show-window', () => {
     if (!positionWindow && mainWindow) {
+      mainWindow.setAlwaysOnTop(true, 'screen-saver');
       mainWindow.show();
+      mainWindow.moveTop();
       mainWindow.focus();
       mainWindow.webContents.send('remove-fadeout');
       resetHideTimer();
