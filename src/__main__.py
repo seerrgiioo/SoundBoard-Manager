@@ -64,8 +64,8 @@ def _start_tray():
         def on_settings(icon, item):
             global app
             try:
-                if app and hasattr(app, 'win') and hasattr(app.win, 'show_settings'):
-                    app.win.show_settings()
+                if app and hasattr(app, 'win') and hasattr(app.win, 'requestSettings'):
+                    app.win.requestSettings.emit()
             except Exception:
                 pass
 

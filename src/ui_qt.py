@@ -26,9 +26,10 @@ GREY = QtGui.QColor("#6E6E73")
 CONFIG_DIR = Path.home() / 'AppData' / 'Local' / 'SoundBoard Manager'
 CONFIG_FILE = CONFIG_DIR / 'settings.json'
 DEFAULT_CONFIG = {
-    'position': 'top-left',  # top-left, top-right, bottom-left, bottom-right
+    'position': 'top-left',  # 9 positions
     'offset_x': 10,
-    'offset_y': 10
+    'offset_y': 10,
+    'language': 'es'  # default Spanish
 }
 
 def load_config():
@@ -53,6 +54,8 @@ def save_config(config):
 class QtOverlay(QtWidgets.QWidget):
     requestShow = QtCore.Signal()
     requestHide = QtCore.Signal()
+    requestSettings = QtCore.Signal()
+    
     def __init__(self, controller=None, parent=None):
         super().__init__(parent)
         self.controller = controller
@@ -104,6 +107,7 @@ class QtOverlay(QtWidgets.QWidget):
         # Conexiones thread-safe
         self.requestShow.connect(self.show_with_fade)
         self.requestHide.connect(self.hide_with_fade)
+        self.requestSettings.connect(self._show_settings_safe)
 
     def show_with_fade(self):
         if not self.isVisible():
@@ -317,19 +321,30 @@ class QtOverlay(QtWidgets.QWidget):
             pass
 
     def _apply_position_from_config(self):
-        """Calcula y aplica la posición desde la config"""
+        """Calcula y aplica la posición desde la config (9 posiciones)"""
         width, height = 420, 520
         screen = QtWidgets.QApplication.primaryScreen().geometry()
         pos = self.config.get('position', 'top-left')
         offset_x = self.config.get('offset_x', 10)
         offset_y = self.config.get('offset_y', 10)
         
+        # 9 posiciones
         if pos == 'top-left':
             x, y = offset_x, offset_y
+        elif pos == 'top-center':
+            x, y = (screen.width() - width) // 2, offset_y
         elif pos == 'top-right':
             x, y = screen.width() - width - offset_x, offset_y
+        elif pos == 'middle-left':
+            x, y = offset_x, (screen.height() - height) // 2
+        elif pos == 'center':
+            x, y = (screen.width() - width) // 2, (screen.height() - height) // 2
+        elif pos == 'middle-right':
+            x, y = screen.width() - width - offset_x, (screen.height() - height) // 2
         elif pos == 'bottom-left':
             x, y = offset_x, screen.height() - height - offset_y
+        elif pos == 'bottom-center':
+            x, y = (screen.width() - width) // 2, screen.height() - height - offset_y
         elif pos == 'bottom-right':
             x, y = screen.width() - width - offset_x, screen.height() - height - offset_y
         else:
@@ -338,29 +353,62 @@ class QtOverlay(QtWidgets.QWidget):
         self.setGeometry(x, y, width, height)
 
     def show_settings(self):
-        """Muestra diálogo de configuración"""
+        """DEPRECATED: Usar requestSettings.emit() desde otros threads"""
+        self._show_settings_safe()
+    
+    def _show_settings_safe(self):
+        """Muestra diálogo de configuración (thread-safe)"""
         dialog = SettingsDialog(self.config, self)
         if dialog.exec() == QtWidgets.QDialog.Accepted:
-            self.config = dialog.get_config()
-            save_config(self.config)
-            self._apply_position_from_config()
+            new_config = dialog.get_config()
+            self.config = new_config
+            if save_config(self.config):
+                print(f"[CONFIG] Configuración guardada: posición={self.config.get('position')}, idioma={self.config.get('language')}")
+                self._apply_position_from_config()
+                # Si está visible, mostrar brevemente para confirmar nueva posición
+                if self.isVisible():
+                    self.show_with_fade()
+            else:
+                print("[CONFIG] Error al guardar configuración")
 
 class SettingsDialog(QtWidgets.QDialog):
     def __init__(self, config, parent=None):
         super().__init__(parent)
         self.config = config.copy()
         self.setWindowTitle("Configuración")
-        self.setFixedSize(400, 250)
-        self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowStaysOnTopHint)
+        self.setFixedSize(450, 400)
+        self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
         
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # Título
-        title = QtWidgets.QLabel("Configuración del Mezclador")
-        title.setStyleSheet("font-size: 18px; font-weight: bold; color: white;")
-        layout.addWidget(title)
+        # Icono en la parte superior (speaker logo)
+        icon_label = QtWidgets.QLabel()
+        icon_label.setFixedSize(64, 64)
+        icon_label.setAlignment(QtCore.Qt.AlignCenter)
+        # Crear pixmap con el logo
+        pixmap = QtGui.QPixmap(64, 64)
+        pixmap.fill(QtCore.Qt.transparent)
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        # Círculo blanco
+        painter.setBrush(WHITE)
+        painter.setPen(QtCore.Qt.NoPen)
+        painter.drawEllipse(16, 16, 32, 32)
+        # Speaker oscuro
+        painter.setBrush(DARK_BG)
+        painter.drawRect(26, 26, 5, 8)
+        path = QtGui.QPainterPath()
+        path.moveTo(31, 26)
+        path.lineTo(38, 22)
+        path.lineTo(38, 42)
+        path.lineTo(31, 38)
+        path.closeSubpath()
+        painter.drawPath(path)
+        painter.end()
+        icon_label.setPixmap(pixmap)
+        layout.addWidget(icon_label, alignment=QtCore.Qt.AlignCenter)
         
         # Posición
         pos_label = QtWidgets.QLabel("Posición en pantalla:")
@@ -368,8 +416,16 @@ class SettingsDialog(QtWidgets.QDialog):
         layout.addWidget(pos_label)
         
         self.pos_combo = QtWidgets.QComboBox()
-        self.pos_combo.addItems(["Arriba Izquierda", "Arriba Derecha", "Abajo Izquierda", "Abajo Derecha"])
-        positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+        self.pos_combo.addItems([
+            "Arriba Izquierda", "Arriba Centro", "Arriba Derecha",
+            "Medio Izquierda", "Centro", "Medio Derecha",
+            "Abajo Izquierda", "Abajo Centro", "Abajo Derecha"
+        ])
+        positions = [
+            'top-left', 'top-center', 'top-right',
+            'middle-left', 'center', 'middle-right',
+            'bottom-left', 'bottom-center', 'bottom-right'
+        ]
         current_pos = config.get('position', 'top-left')
         if current_pos in positions:
             self.pos_combo.setCurrentIndex(positions.index(current_pos))
@@ -396,6 +452,23 @@ class SettingsDialog(QtWidgets.QDialog):
             }
         """)
         layout.addWidget(self.pos_combo)
+        
+        # Idioma
+        lang_label = QtWidgets.QLabel("Idioma / Language:")
+        lang_label.setStyleSheet("font-size: 13px; color: white; margin-top: 10px;")
+        layout.addWidget(lang_label)
+        
+        self.lang_combo = QtWidgets.QComboBox()
+        self.lang_combo.addItems([
+            "Español", "English", "Français", "Deutsch", "Italiano",
+            "Português", "日本語", "中文", "한국어", "Русский"
+        ])
+        languages = ['es', 'en', 'fr', 'de', 'it', 'pt', 'ja', 'zh', 'ko', 'ru']
+        current_lang = config.get('language', 'es')
+        if current_lang in languages:
+            self.lang_combo.setCurrentIndex(languages.index(current_lang))
+        self.lang_combo.setStyleSheet(self.pos_combo.styleSheet())
+        layout.addWidget(self.lang_combo)
         
         layout.addStretch()
         
@@ -443,8 +516,14 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setStyleSheet("QDialog { background: #1A1A1B; }")
     
     def get_config(self):
-        positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+        positions = [
+            'top-left', 'top-center', 'top-right',
+            'middle-left', 'center', 'middle-right',
+            'bottom-left', 'bottom-center', 'bottom-right'
+        ]
+        languages = ['es', 'en', 'fr', 'de', 'it', 'pt', 'ja', 'zh', 'ko', 'ru']
         self.config['position'] = positions[self.pos_combo.currentIndex()]
+        self.config['language'] = languages[self.lang_combo.currentIndex()]
         return self.config
 
 
