@@ -108,13 +108,8 @@ function startBackend() {
     });
 
     if (!exePath) {
-      console.error('[BACKEND] Packaged backend not found in candidates:', candidates);
-      try {
-        dialog.showErrorBox(
-          'Backend missing',
-          'SoundManagerBackend.exe was not found in the installed resources. Please reinstall or run the portable version (win-unpacked).'
-        );
-      } catch {}
+      console.warn('[BACKEND] Packaged backend not found. Candidates:', candidates);
+      // Silent fallback: continue without backend
       return; // don't crash main process
     }
 
@@ -133,9 +128,7 @@ function startBackend() {
       });
       backendProcess.on('error', (err) => {
         console.error('[BACKEND] spawn error (packaged):', err);
-        try {
-          dialog.showErrorBox('Backend error', 'Failed to start backend. The app will continue with limited functionality.');
-        } catch {}
+        // Silent: no blocking dialog
         backendProcess = null;
       });
       backendProcess.on('exit', (code, signal) => {

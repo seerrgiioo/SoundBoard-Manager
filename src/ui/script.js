@@ -28,10 +28,29 @@ function requestState() {
 }
 
 function getVolumeIcon(volume) {
-  if (volume === 0) return '🔇';
-  if (volume < 33) return '🔈';
-  if (volume < 66) return '🔉';
-  return '🔊';
+  // Lucide-style inline SVG (stroke icons)
+  const common = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+
+  const speaker = '<path d="M11 5 L7.5 8 H5 v8 h2.5 L11 19 V5 Z" />';
+  const wave1 = '<path d="M15 9 a3 3 0 0 1 0 6" />';
+  const wave2 = '<path d="M17 7 a5 5 0 0 1 0 10" />';
+  const wave3 = '<path d="M19 5 a7 7 0 0 1 0 14" />';
+  const cross = '<line x1="19" y1="9" x2="23" y2="13" /><line x1="23" y1="9" x2="19" y2="13" />';
+
+  if (volume === 0) {
+    // volume-x (mute)
+    return `<svg ${common}>${speaker}${cross}</svg>`;
+  }
+  if (volume < 33) {
+    // volume-1 (low)
+    return `<svg ${common}>${speaker}${wave1}</svg>`;
+  }
+  if (volume < 66) {
+    // volume-2 (medium)
+    return `<svg ${common}>${speaker}${wave1}${wave2}</svg>`;
+  }
+  // volume (high)
+  return `<svg ${common}>${speaker}${wave1}${wave2}${wave3}</svg>`;
 }
 
 function renderAppsFromState(state) {
