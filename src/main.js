@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, dialog } = require('electron');
 const { spawn } = require('child_process');
 const AutoLaunch = require('auto-launch');
 const path = require('path');
@@ -101,6 +101,12 @@ function startBackend() {
 
     if (!exePath) {
       console.error('[BACKEND] Packaged backend not found in candidates:', candidates);
+      try {
+        dialog.showErrorBox(
+          'Backend missing',
+          'SoundManagerBackend.exe was not found in the installed resources. Please reinstall or run the portable version (win-unpacked).'
+        );
+      } catch {}
       return; // don't crash main process
     }
 
