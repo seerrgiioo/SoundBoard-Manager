@@ -1,11 +1,11 @@
-# 🎵 SoundBoard Manager
+# �️ SoundBoard Manager - Volume Mixer Lightweight
 
-A powerful Windows application for per-application volume control with keyboard shortcuts. Control individual application volumes without touching your mouse.
+**Python version** - Replace Electron app with lightweight volume control that weighs **95% less**
 
-![License](https://img.shields.io/badge/license-Non--Commercial-orange.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![Electron](https://img.shields.io/badge/electron-28.0.0-blue.svg)
+![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
+![Size](https://img.shields.io/badge/size-%3C10MB-brightgreen.svg)
 
 ## ✨ Features
 

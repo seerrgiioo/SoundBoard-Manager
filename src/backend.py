@@ -1,18 +1,58 @@
 """
 SoundBoard Manager - Backend optimizado
+Nota: Se usa pycaw/comtypes. En Python 3.14 comtypes puede fallar con
+_compointer_base; se parchea de forma defensiva.
 """
-from pycaw.pycaw import AudioUtilities
-import keyboard
-import asyncio
-import websockets
-import json
 import os
-import time
-import psutil
+import json
 import base64
-from PIL import Image
+import time
 import io
-import numpy as np
+import psutil
+from PIL import Image
+from pathlib import Path
+import base64
+import io
+
+
+def _safe_import_comtypes():
+    """Carga comtypes inyectando _compointer_base antes de ejecutar el módulo.
+
+    En Python 3.14 comtypes 1.1.x falla porque referencia _compointer_base
+    durante la inicialización. Al predefinirlo en el dict del módulo evitamos
+    el NameError sin tocar site-packages.
+    """
+    import importlib.util
+    import sys
+
+    try:
+        if 'comtypes' in sys.modules:
+            mod = sys.modules['comtypes']
+            if '_compointer_base' not in mod.__dict__:
+                mod.__dict__['_compointer_base'] = object
+            return mod
+
+        spec = importlib.util.find_spec('comtypes')
+        if not spec or not spec.loader:
+            print('[COMTYPES] Especificación no encontrada')
+            return None
+
+        mod = importlib.util.module_from_spec(spec)
+        mod.__dict__['_compointer_base'] = object
+        sys.modules['comtypes'] = mod
+        spec.loader.exec_module(mod)
+        return mod
+    except Exception as e:
+        print(f"[COMTYPES] Patch failed: {e}")
+        return None
+
+
+try:
+    import comtypes  # noqa: F401
+except Exception as e:
+    print(f"[COMTYPES] Import error, applying patch: {e}")
+    _safe_import_comtypes()
+from pycaw.pycaw import AudioUtilities
 
 # Variables globales
 last_master_volume = None
@@ -41,6 +81,20 @@ def set_master_volume(level):
         interface.SetMasterVolumeLevelScalar(level, None)
     except:
         pass
+
+
+def toggle_master_mute():
+    """Alterna el mute del volumen maestro."""
+    try:
+        devices = AudioUtilities.GetSpeakers()
+        interface = devices.Activate(
+            AudioUtilities.IID_IAudioEndpointVolume, 0, None)
+        current = bool(interface.GetMute()) if hasattr(interface, 'GetMute') else False
+        interface.SetMute(not current, None)
+        return True
+    except Exception as e:
+        print(f"[AUDIO] Error toggle_master_mute: {e}")
+        return False
 
 def load_config():
     """Carga configuración desde settings.json"""
@@ -80,6 +134,16 @@ def get_app_name_clean(pid):
     try:
         process = psutil.Process(pid)
         exe_path = process.exe()
+        base_name = os.path.basename(exe_path).lower()
+        FRIENDLY = {
+            'msedge.exe': 'Microsoft Edge',
+            'chrome.exe': 'Google Chrome',
+            'steam.exe': 'Steam',
+            'telegram.exe': 'Telegram Desktop',
+            'whatsapp.exe': 'WhatsApp',
+            'spotify.exe': 'Spotify',
+            'vlc.exe': 'VLC media player',
+        }
         
         # Intentar obtener el nombre del producto desde el ejecutable
         import win32api
@@ -100,70 +164,305 @@ def get_app_name_clean(pid):
             pass
         
         # Fallback: nombre del proceso sin .exe
+        if base_name in FRIENDLY:
+            return FRIENDLY[base_name]
         return process.name().replace('.exe', '')
     except:
         return "Unknown"
 
-def get_app_icon_base64(exe_path):
-    """Obtiene el icono de la aplicación en base64 con transparencia"""
-    if not exe_path:
-        return None
+def get_icon_from_shortcut(app_name):
+    """Busca un acceso directo .lnk en Start Menu y extrae su icono.
     
+    Intenta:
+    - %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\<app_name>\\<app_name>.lnk
+    - Búsqueda recursiva por nombre similar
+    """
+    try:
+        import win32com.client
+        shell = win32com.client.Dispatch("WScript.Shell")
+        
+        # Rutas posibles de Start Menu
+        appdata = os.getenv('APPDATA', '')
+        start_menu = os.path.join(appdata, 'Microsoft', 'Windows', 'Start Menu', 'Programs')
+        
+        if not os.path.exists(start_menu):
+            return None
+        
+        # Buscar .lnk files recursivamente
+        lnk_files = list(Path(start_menu).rglob('*.lnk'))
+        
+        # Prioridad: búsqueda exacta por nombre, luego búsqueda parcial
+        candidates = []
+        for lnk_path in lnk_files:
+            lnk_name = lnk_path.stem.lower()
+            app_lower = app_name.lower()
+            if lnk_name == app_lower or app_lower in lnk_name or lnk_name in app_lower:
+                candidates.append(lnk_path)
+        
+        if not candidates:
+            return None
+        
+        # Usar el primer coincidente
+        lnk_file = candidates[0]
+        
+        try:
+            shortcut = shell.CreateShortcut(str(lnk_file))
+            icon_path = shortcut.IconLocation  # Formato: "path,index" o ",index"
+            target_path = shortcut.TargetPath
+            
+            if not icon_path and not target_path:
+                return None
+            
+            # Parsear icon_path
+            if icon_path:
+                if ',' in icon_path:
+                    icon_exe, icon_idx_str = icon_path.rsplit(',', 1)
+                    try:
+                        icon_idx = int(icon_idx_str)
+                    except:
+                        icon_idx = 0
+                    # Si está vacío antes de la coma, usar target_path
+                    if not icon_exe or icon_exe.strip() == '':
+                        icon_exe = target_path
+                else:
+                    icon_exe = icon_path
+                    icon_idx = 0
+            else:
+                # Sin IconLocation, usar TargetPath
+                icon_exe = target_path
+                icon_idx = 0
+            
+            # Limpiar comillas y espacios
+            icon_exe = icon_exe.strip().strip('"')
+            
+            if icon_exe and os.path.exists(icon_exe):
+                # Extraer icono desde la ruta indicada
+                return extract_icon_from_file(icon_exe, icon_idx)
+        except Exception as e:
+            pass
+        
+        return None
+    except Exception as e:
+        return None
+
+
+def extract_icon_from_file(file_path, index=0):
+    """Extrae icono de un archivo (.exe, .dll, .ico) y lo convierte a PNG base64.
+    
+    Intenta:
+    1. win32gui.ExtractIconEx
+    2. Buscar PNG embebido en el archivo
+    """
     try:
         import win32gui
         import win32ui
         import win32con
         
-        large, small = win32gui.ExtractIconEx(exe_path, 0, 1)
-        if not large or len(large) == 0:
+        large, small = win32gui.ExtractIconEx(file_path, index)
+        hicon = None
+        if large and len(large) > 0:
+            hicon = large[0]
+        elif small and len(small) > 0:
+            hicon = small[0]
+        
+        if not hicon:
             return None
-        hicon = large[0]
         
-        icon_size = 32
-        hdc = win32ui.CreateDCFromHandle(win32gui.GetDC(0))
-        hdc_mem = hdc.CreateCompatibleDC()
-        hbmp = win32ui.CreateBitmap()
-        hbmp.CreateCompatibleBitmap(hdc, icon_size, icon_size)
-        hdc_mem.SelectObject(hbmp)
-        win32gui.DrawIconEx(hdc_mem.GetSafeHdc(), 0, 0, hicon, icon_size, icon_size, 0, 0, win32con.DI_NORMAL)
+        iconinfo = win32gui.GetIconInfo(hicon)
+        hbm_color = iconinfo['hbmColor']
+        hbm_mask = iconinfo['hbmMask']
         
-        bmpstr = hbmp.GetBitmapBits(True)
-        img_rgb = Image.frombuffer('RGB', (icon_size, icon_size), bmpstr, 'raw', 'BGRX', 0, 1)
-        arr = np.array(img_rgb)
-        alpha = np.full((icon_size, icon_size), 255, dtype=np.uint8)
-        rgba = np.dstack((arr, alpha))
+        hdc = win32gui.GetDC(0)
+        srcdc = win32ui.CreateDCFromHandle(hdc)
+        memdc = srcdc.CreateCompatibleDC()
+        bmp = win32ui.CreateBitmapFromHandle(hbm_color)
+        memdc.SelectObject(bmp)
+        
+        bmpinfo = bmp.GetInfo()
+        width, height = bmpinfo['bmWidth'], bmpinfo['bmHeight']
+        raw_bits = bmp.GetBitmapBits(True)
+        
+        img = Image.frombuffer('RGBA', (width, height), raw_bits, 'raw', 'BGRA', 0, 1)
+        img = img.resize((24, 24), Image.LANCZOS)
+        
+        buf = io.BytesIO()
+        img.save(buf, format='PNG')
+        b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+        
+        try:
+            for ico in large:
+                win32gui.DestroyIcon(ico)
+            for ico in small:
+                win32gui.DestroyIcon(ico)
+        except Exception:
+            pass
+        
+        return 'data:image/png;base64,' + b64
+    except Exception:
+        pass
+    
+    # Fallback: buscar PNG embebido en el archivo
+    try:
+        with open(file_path, 'rb') as f:
+            data = f.read()
+            png_header = b'\x89PNG\r\n\x1a\n'
+            idx = data.find(png_header)
+            
+            if idx >= 0:
+                # Buscar el final del PNG (IEND chunk)
+                iend = data.find(b'IEND', idx) + 8
+                if iend <= idx:
+                    return None
+                
+                # Extraer PNG
+                png_data = data[idx:iend]
+                
+                # Cargar con PIL
+                img = Image.open(io.BytesIO(png_data))
+                
+                # Resize a 24x24
+                img_resized = img.resize((24, 24), Image.LANCZOS)
+                
+                # Convertir a base64
+                buf = io.BytesIO()
+                img_resized.save(buf, format='PNG')
+                b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+                
+                return 'data:image/png;base64,' + b64
+    except Exception:
+        pass
+    
+    return None
 
-        # Transparencia por flood-fill desde las esquinas
-        def flood_clear(bg_color, threshold=12):
-            h, w = icon_size, icon_size
-            visited = np.zeros((h, w), dtype=bool)
-            stack = [(0,0), (0,w-1), (h-1,0), (h-1,w-1)]
-            while stack:
-                y, x = stack.pop()
-                if y<0 or y>=h or x<0 or x>=w or visited[y, x]:
-                    continue
-                visited[y, x] = True
-                px = rgba[y, x, :3]
-                if np.max(np.abs(px.astype(int) - bg_color.astype(int))) <= threshold:
-                    rgba[y, x, 3] = 0
-                    stack.extend([(y-1,x), (y+1,x), (y,x-1), (y,x+1)])
+def get_app_icon_base64(exe_path):
+    """Extrae el icono del ejecutable y lo devuelve como PNG base64.
 
-        corners = np.array([rgba[0,0,:3], rgba[0,-1,:3], rgba[-1,0,:3], rgba[-1,-1,:3]])
-        bg_color = corners.mean(axis=0).astype(np.uint8)
-        flood_clear(bg_color)
-
-        img = Image.fromarray(rgba, 'RGBA')
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG")
-        img_base64 = base64.b64encode(buffered.getvalue()).decode()
-        
-        win32gui.DestroyIcon(hicon)
-        if small and len(small) > 0:
-            win32gui.DestroyIcon(small[0])
-        
-        return f"data:image/png;base64,{img_base64}"
-    except:
+    Intenta:
+    1. Extraer desde el ejecutable directamente
+    2. Buscar en acceso directo .lnk del Start Menu
+    
+    Si falla, devuelve None.
+    """
+    if not exe_path:
         return None
+    
+    # Intenta extraer desde el ejecutable
+    try:
+        result = extract_icon_from_file(exe_path, 0)
+        if result:
+            return result
+    except Exception:
+        pass
+    
+    # Fallback: buscar en acceso directo
+    try:
+        # Extraer nombre amigable del ejecutable para búsqueda de .lnk
+        app_name = os.path.basename(exe_path).replace('.exe', '')
+        result = get_icon_from_shortcut(app_name)
+        if result:
+            return result
+    except Exception:
+        pass
+    
+    return None
+
+
+# API simplificada para UI Tkinter
+def list_sessions():
+    """Devuelve lista de sesiones de audio activas.
+
+    Cada elemento: name, pid, volume (0-100), isMuted (bool).
+    """
+    sessions_out = []
+    try:
+        sessions = AudioUtilities.GetAllSessions()
+    except Exception as e:
+        print(f"[AUDIO] Error obteniendo sesiones: {e}")
+        return sessions_out
+
+    for session in sessions:
+        try:
+            if not session.Process:
+                continue
+            pid = session.Process.pid
+            volume_control = session.SimpleAudioVolume
+            if not volume_control:
+                continue
+            volume = int(volume_control.GetMasterVolume() * 100)
+            is_muted = bool(volume_control.GetMute()) if hasattr(volume_control, 'GetMute') else False
+            name = get_app_name_clean(pid)
+            sessions_out.append({
+                "name": name,
+                "pid": pid,
+                "volume": volume,
+                "isMuted": is_muted,
+            })
+        except Exception as e:
+            print(f"[AUDIO] Error procesando sesión: {e}")
+    return sessions_out
+
+
+def set_app_volume(pid, volume):
+    """Establece volumen (0-100) para una app por PID."""
+    try:
+        volume = max(0, min(100, int(volume)))
+        sessions = AudioUtilities.GetAllSessions()
+        for session in sessions:
+            if session.Process and session.Process.pid == pid:
+                ctrl = session.SimpleAudioVolume
+                if ctrl:
+                    ctrl.SetMasterVolume(volume / 100.0, None)
+                return True
+    except Exception as e:
+        print(f"[AUDIO] Error set_app_volume: {e}")
+    return False
+
+
+def toggle_mute(pid):
+    """Alterna mute de una app por PID."""
+    try:
+        sessions = AudioUtilities.GetAllSessions()
+        for session in sessions:
+            if session.Process and session.Process.pid == pid:
+                ctrl = session.SimpleAudioVolume
+                if ctrl and hasattr(ctrl, 'GetMute') and hasattr(ctrl, 'SetMute'):
+                    current = bool(ctrl.GetMute())
+                    ctrl.SetMute(not current, None)
+                return True
+    except Exception as e:
+        print(f"[AUDIO] Error toggle_mute: {e}")
+    return False
+
+
+def get_master():
+    """Volumen maestro (0-100)."""
+    v = get_master_volume()
+    return int(v * 100) if v is not None else None
+
+
+def set_master(volume):
+    """Ajusta volumen maestro (0-100)."""
+    try:
+        volume = max(0, min(100, int(volume)))
+        set_master_volume(volume / 100.0)
+        return True
+    except Exception as e:
+        print(f"[AUDIO] Error set_master: {e}")
+        return False
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--icons":
+        print("Iconos extraídos:")
+        for s in list_sessions():
+            icon = get_app_icon_base64(psutil.Process(s['pid']).exe()) if s.get('pid') else None
+            print(f"{s['name']} | icon_len={len(icon) if icon else 0}")
+        sys.exit(0)
+    else:
+        print("Sesiones:")
+        for s in list_sessions():
+            print(s)
 
 class AudioManager:
     """Gestiona sesiones de audio"""
