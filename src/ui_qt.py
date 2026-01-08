@@ -41,7 +41,8 @@ DEFAULT_CONFIG = {
     'position': 'top-left',  # 9 positions
     'offset_x': 10,
     'offset_y': 10,
-    'language': 'es'  # default Spanish
+    'language': 'es',  # default Spanish
+    'step': 4  # Tamano del paso de volumen (2-10)
 }
 
 def load_config():
@@ -376,14 +377,22 @@ class QtOverlay(QtWidgets.QWidget):
         if dialog.exec() == QtWidgets.QDialog.Accepted:
             new_config = dialog.get_config()
             old_lang = self.config.get('language', 'es')
+            old_step = self.config.get('step', 4)
+            new_step = new_config.get('step', 4)
             self.config = new_config
             new_lang = self.config.get('language', 'es')
             if save_config(self.config):
-                print(f"[CONFIG] Configuración guardada: posición={self.config.get('position')}, idioma={new_lang}")
+                print(f"[CONFIG] Configuración guardada: posición={self.config.get('position')}, idioma={new_lang}, step={new_step}")
                 # Actualizar idioma si cambió
                 if old_lang != new_lang:
                     self.i18n.set_language(new_lang)
                     print(f"[I18N] Idioma cambiado a {new_lang}")
+                # Actualizar step del controlador si cambió
+                if old_step != new_step and self.controller:
+                    try:
+                        self.controller.set_step(new_step)
+                    except Exception as e:
+                        print(f"[CONFIG] Error actualizando step: {e}")
                 self._apply_position_from_config()
                 # Si está visible, mostrar brevemente para confirmar nueva posición
                 if self.isVisible():
@@ -397,7 +406,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.config = config.copy()
         self.i18n = i18n_instance
         self.setWindowTitle("Configuración")
-        self.setFixedSize(450, 400)
+        self.setFixedSize(450, 480)
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
         
         layout = QtWidgets.QVBoxLayout(self)
@@ -491,6 +500,43 @@ class SettingsDialog(QtWidgets.QDialog):
         self.lang_combo.setStyleSheet(self.pos_combo.styleSheet())
         layout.addWidget(self.lang_combo)
         
+        # Step de volumen
+        step_label = QtWidgets.QLabel("Paso de volumen (2-10)")
+        step_label.setStyleSheet("font-size: 13px; color: white; margin-top: 10px;")
+        layout.addWidget(step_label)
+        
+        step_container = QtWidgets.QHBoxLayout()
+        self.step_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.step_slider.setMinimum(2)
+        self.step_slider.setMaximum(10)
+        self.step_slider.setValue(config.get('step', 4))
+        self.step_slider.setStyleSheet("""
+            QSlider::groove:horizontal {
+                background: #2D2D2F;
+                height: 6px;
+                border-radius: 3px;
+            }
+            QSlider::handle:horizontal {
+                background: white;
+                width: 16px;
+                margin: -5px 0;
+                border-radius: 8px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: #E6E6E6;
+            }
+        """)
+        
+        self.step_value = QtWidgets.QLabel(str(config.get('step', 4)))
+        self.step_value.setStyleSheet("font-size: 13px; color: white; min-width: 20px; text-align: center;")
+        self.step_value.setAlignment(QtCore.Qt.AlignCenter)
+        
+        self.step_slider.valueChanged.connect(lambda v: self.step_value.setText(str(v)))
+        
+        step_container.addWidget(self.step_slider)
+        step_container.addWidget(self.step_value)
+        layout.addLayout(step_container)
+        
         layout.addStretch()
         
         # Botones
@@ -545,6 +591,7 @@ class SettingsDialog(QtWidgets.QDialog):
         languages = ['es', 'en', 'fr', 'de', 'it', 'pt', 'ja', 'zh', 'ko', 'ru']
         self.config['position'] = positions[self.pos_combo.currentIndex()]
         self.config['language'] = languages[self.lang_combo.currentIndex()]
+        self.config['step'] = self.step_slider.value()
         return self.config
 
 

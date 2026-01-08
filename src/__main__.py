@@ -21,16 +21,19 @@ if getattr(sys, 'frozen', False):
     # Imports absolutos
     import media_wheel
     import i18n
+    import ui_qt
 else:
     # Ejecutando como script normal
     # Imports relativos
     try:
         from . import media_wheel
         from . import i18n
+        from . import ui_qt
     except ImportError:
         # Si falla, intentar imports absolutos
         import media_wheel
         import i18n
+        import ui_qt
 
 # Opcional: bandeja del sistema para salir
 def on_exit(icon, item):
@@ -193,8 +196,12 @@ def main():
     print("[SOUNDBOARD] Python versión optimizada (sin Electron)")
     print("[SOUNDBOARD] Interfaz en background - usa la rueda multimedia para mostrar")
 
+    # Cargar configuración para obtener el step
+    config = ui_qt.load_config()
+    step = config.get('step', 4)
+
     try:
-        media_hw = media_wheel.start_media_wheel(step=4, hold_ms=2000)
+        media_hw = media_wheel.start_media_wheel(step=step, hold_ms=2000)
     except Exception as e:
         print(f"[MEDIA-WHEEL] No se pudo iniciar la rueda multimedia: {e}")
 

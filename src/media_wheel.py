@@ -23,12 +23,14 @@ else:
 class MediaWheelController:
     def __init__(self, step=4, hold_ms=2000):
         self.step = step
-        self.hold_ms = hold_ms / 1000.0  # Convert to seconds
+        self.hold_ms = hold_ms / 1000.0  # Convert to seconds (keep for compatibility, but not used for mute)
         self.mode = 'volume'  # 'volume' o 'select'
         self.audio = backend.AudioManager()
         self.running = False
         self.refresh_thread = None
-        self.mute_down_at = None
+        self.mute_click_count = 0  # Contador de clics para detectar doble clic
+        self.last_mute_click_time = None  # Tiempo del último clic
+        self.mute_double_click_threshold = 0.3  # segundos para considerar doble clic
         self.last_master_volume = None
         self.ui_callback = None  # Callback para notificar a la UI
         # Guardas para evitar eventos solapados y rebotes
@@ -52,7 +54,7 @@ class MediaWheelController:
         # Hook con keyboard library (como en Electron: suppress=True + return False)
         keyboard.hook(self._handle_keyboard, suppress=True)
         
-        print("[MEDIA-WHEEL] Control de rueda multimedia activo (override nativo). Clic corto = alternar modo, mantener 2s = mute.")
+        print("[MEDIA-WHEEL] Control de rueda multimedia activo (override nativo). Clic corto = alternar modo, doble clic = mute.")
 
     def stop(self):
         self.running = False
@@ -62,6 +64,12 @@ class MediaWheelController:
             pass
         if self.refresh_thread:
             self.refresh_thread.join(timeout=1)
+
+    def set_step(self, new_step):
+        """Actualiza el tamaño del paso de volumen en tiempo de ejecución"""
+        if 2 <= new_step <= 10:
+            self.step = new_step
+            print(f"[MEDIA-WHEEL] Paso de volumen actualizado a {new_step}")
 
     def _refresh_loop(self):
         while self.running:
@@ -74,9 +82,9 @@ class MediaWheelController:
     def _handle_keyboard(self, event):
         """Handler de teclado que suprime eventos multimedia (como Electron)"""
         if event.event_type != 'down':
-            # Solo suprimir en key down; permitir key up pasar para evitar estados stuck
+            # Solo procesar key up para el botón mute
             if event.name == 'volume mute' and event.event_type == 'up':
-                self._on_mute_up_internal()
+                self._on_mute_click_internal()
             return True
         
         # Verificar si es una tecla multimedia primero
@@ -110,7 +118,8 @@ class MediaWheelController:
         elif event.name == 'volume down':
             self._handle_volume_change(-self.step)
         elif event.name == 'volume mute':
-            self.mute_down_at = time.time()
+            # Registrar clic para detectar doble clic (se procesa en key up)
+            pass
         
         # Restaurar volumen maestro después de un breve delay (como en Electron)
         if self.last_master_volume is not None:
@@ -133,18 +142,24 @@ class MediaWheelController:
             else:
                 self._nudge_master(delta)
 
-    def _on_mute_up_internal(self):
-        if self.mute_down_at is None:
+    def _on_mute_click_internal(self):
+        """Maneja los clics en el botón mute para detectar doble clic"""
+        now = time.time()
+        
+        # Si hace demasiado tiempo del último clic, resetear contador
+        if self.last_mute_click_time is None or (now - self.last_mute_click_time) > self.mute_double_click_threshold:
+            self.mute_click_count = 1
+            self.last_mute_click_time = now
+            # Un solo clic: alternar modo
             self._toggle_mode()
-            return
-        
-        held = time.time() - self.mute_down_at
-        self.mute_down_at = None
-        
-        if held >= self.hold_ms:
-            self._mute_current()
         else:
-            self._toggle_mode()
+            # Dentro del threshold: incrementar contador
+            self.mute_click_count += 1
+            if self.mute_click_count >= 2:
+                # Doble clic detectado: mutear
+                self._mute_current()
+                self.mute_click_count = 0
+                self.last_mute_click_time = None
 
     def _current_session(self):
         if not self.audio.sessions:
