@@ -1,4 +1,4 @@
-# 🎵 SoundBoard Manager - Lightweight Volume Mixer
+# SoundBoard Manager - Lightweight Volume Mixer
 
 **Pure Python** - Ultra-lightweight volume control that replaces heavy Electron apps
 
