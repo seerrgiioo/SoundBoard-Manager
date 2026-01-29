@@ -49,11 +49,6 @@
    ```bash
    pip install -r requirements.txt
    ```
-
-4. **Configure language files** (optional)
-   
-   See [CONFIGURACION_I18N.md](CONFIGURACION_I18N.md) for details on setting up the GitHub repository for language files.
-
 5. **Run the application**
    ```bash
    python -m src
